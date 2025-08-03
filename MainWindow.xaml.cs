@@ -143,51 +143,32 @@ namespace PieOverlay
             const byte VK_MENU    = 0x12; // Alt
             const uint KEYDOWN = 0x0000, KEYUP = 0x0002;
 
-            var parts = hotkey.Split('+');
-            var modifiers = new List<byte>();
-            byte mainKey = 0;
-
-            foreach (var part in parts)
+            try
             {
-                switch (part.Trim().ToUpper())
-                {
-                    case "CTRL":
-                    case "CONTROL":
-                        modifiers.Add(VK_CONTROL);
-                        break;
-                    case "ALT":
-                        modifiers.Add(VK_MENU);
-                        break;
-                    case "SHIFT":
-                        modifiers.Add(VK_SHIFT);
-                        break;
-                    case "DELETE":
-                        mainKey = 0x2E;
-                        break;
-                    case "ESC":
-                    case "ESCAPE":
-                        mainKey = 0x1B;
-                        break;
-                    default:
-                        if (part.Length == 1)
-                            mainKey = (byte)char.ToUpper(part[0]);
-                        else if (part.StartsWith("F") && int.TryParse(part[1..], out int f) && f >= 1 && f <= 24)
-                            mainKey = (byte)(0x70 + f - 1);
-                        break;
-                }
-            }
+                var converter = new KeyGestureConverter();
+                if (converter.ConvertFromString(hotkey) is not KeyGesture gesture)
+                    return;
 
-            foreach (var m in modifiers)
-                keybd_event(m, 0, KEYDOWN, UIntPtr.Zero);
+                var modifiers = new List<byte>();
+                if (gesture.Modifiers.HasFlag(ModifierKeys.Control)) modifiers.Add(VK_CONTROL);
+                if (gesture.Modifiers.HasFlag(ModifierKeys.Shift))   modifiers.Add(VK_SHIFT);
+                if (gesture.Modifiers.HasFlag(ModifierKeys.Alt))     modifiers.Add(VK_MENU);
 
-            if (mainKey != 0)
-            {
+                byte mainKey = (byte)KeyInterop.VirtualKeyFromKey(gesture.Key);
+
+                foreach (var m in modifiers)
+                    keybd_event(m, 0, KEYDOWN, UIntPtr.Zero);
+
                 keybd_event(mainKey, 0, KEYDOWN, UIntPtr.Zero);
                 keybd_event(mainKey, 0, KEYUP,   UIntPtr.Zero);
-            }
 
-            for (int i = modifiers.Count - 1; i >= 0; i--)
-                keybd_event(modifiers[i], 0, KEYUP, UIntPtr.Zero);
+                for (int i = modifiers.Count - 1; i >= 0; i--)
+                    keybd_event(modifiers[i], 0, KEYUP, UIntPtr.Zero);
+            }
+            catch (FormatException)
+            {
+                // ignore invalid hotkey strings
+            }
         }
 
         protected override void OnClosed(EventArgs e)
