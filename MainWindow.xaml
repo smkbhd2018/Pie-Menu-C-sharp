@@ -1,0 +1,16 @@
+﻿<Window
+    x:Class="PieOverlay.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="PieOverlay"
+    WindowStyle="None"
+    AllowsTransparency="True"
+    Background="Transparent"
+    ShowInTaskbar="False"
+    Topmost="True"
+    Width="200"
+    Height="200">
+  <Canvas x:Name="MainCanvas"
+          Width="200" Height="200"
+          Background="Transparent"/>
+</Window>
