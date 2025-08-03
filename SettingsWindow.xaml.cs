@@ -20,6 +20,9 @@ namespace PieOverlay
             Txt5.Text = _parent.ItemNames[5];
             Txt6.Text = _parent.ItemNames[6];
             Txt7.Text = _parent.ItemNames[7];
+
+            // load radius
+            SldRadius.Value = _parent.Radius;
         }
 
         private void OnSave(object sender, RoutedEventArgs e)
@@ -33,6 +36,8 @@ namespace PieOverlay
             _parent.ItemNames[5] = Txt5.Text;
             _parent.ItemNames[6] = Txt6.Text;
             _parent.ItemNames[7] = Txt7.Text;
+
+            _parent.Radius = SldRadius.Value;
 
             Close();
         }

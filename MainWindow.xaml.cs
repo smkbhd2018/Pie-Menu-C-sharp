@@ -13,8 +13,11 @@ namespace PieOverlay
     public partial class MainWindow : Window
     {
         // Keeps the 8 labels; defaulted here but will be overridden in Settings
-        public string[] ItemNames { get; } = 
+        public string[] ItemNames { get; } =
             { "Item1","Item2","Item3","Item4","Item5","Item6","Item7","Item8" };
+
+        // Radius of the pie menu; default 100 but configurable in settings
+        public double Radius { get; set; } = 100;
 
         // Low-level hook constants
         private const int WH_KEYBOARD_LL   = 13;
@@ -142,7 +145,7 @@ namespace PieOverlay
                 pt = ct.TransformFromDevice.Transform(pt);
 
             const int count = 8;
-            double radius = 100, w = 80, h = 30;
+            double radius = Radius, w = 80, h = 30;
             double cw = radius * 2 + w, ch = radius * 2 + h;
             Width  = cw;  Height = ch;
             MainCanvas.Width  = cw;
