@@ -97,12 +97,24 @@ namespace PieOverlay
                     // "1" up selects hovered slice & hides
                     else if (vkCode == VK_1 && up && wnd._visible)
                     {
-                        // hit‐test
+                        // hit‐test; VisualHit might be the TextBlock inside the Border,
+                        // so walk up the tree until we find the enclosing Border element
                         Point rel = Mouse.GetPosition(wnd.MainCanvas);
-                        var hit = VisualTreeHelper.HitTest(wnd.MainCanvas, rel);
-                        if (hit?.VisualHit is Border b)
+                        var hit   = VisualTreeHelper.HitTest(wnd.MainCanvas, rel);
+
+                        Border? border = null;
+                        DependencyObject? cur = hit?.VisualHit;
+                        while (cur != null && border == null)
                         {
-                            int idx = wnd.MainCanvas.Children.IndexOf(b);
+                            if (cur is Border b)
+                                border = b;
+                            else
+                                cur = VisualTreeHelper.GetParent(cur);
+                        }
+
+                        if (border != null)
+                        {
+                            int idx = wnd.MainCanvas.Children.IndexOf(border);
                             if (idx >= 0 && idx < wnd.ItemHotkeys.Length)
                                 SendHotkey(wnd.ItemHotkeys[idx]);
                         }
