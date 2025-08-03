@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -15,6 +16,10 @@ namespace PieOverlay
         // Keeps the 8 labels; defaulted here but will be overridden in Settings
         public string[] ItemNames { get; } =
             { "Item1","Item2","Item3","Item4","Item5","Item6","Item7","Item8" };
+
+        // Hotkeys for each item; editable via settings
+        public string[] ItemHotkeys { get; } =
+            { "Ctrl+A","Ctrl+N","Delete","Esc","","","","" };
 
         // Radius of the pie menu; default 100 but configurable in settings
         public double Radius { get; set; } = 100;
@@ -98,12 +103,8 @@ namespace PieOverlay
                         if (hit?.VisualHit is Border b)
                         {
                             int idx = wnd.MainCanvas.Children.IndexOf(b);
-                            switch (idx)
-                            {
-                                case 0: SendCtrlKey(0x41); break; // Ctrl+A
-                                case 1: SendCtrlKey(0x4E); break; // Ctrl+N
-                                // …etc for items 3–8
-                            }
+                            if (idx >= 0 && idx < wnd.ItemHotkeys.Length)
+                                SendHotkey(wnd.ItemHotkeys[idx]);
                         }
 
                         wnd.MainCanvas.Children.Clear();
@@ -120,14 +121,61 @@ namespace PieOverlay
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
 
-        private static void SendCtrlKey(byte key)
+        private static void SendHotkey(string hotkey)
         {
-            const byte VK_CONTROL      = 0x11;
+            if (string.IsNullOrWhiteSpace(hotkey))
+                return;
+
+            const byte VK_CONTROL = 0x11;
+            const byte VK_SHIFT   = 0x10;
+            const byte VK_MENU    = 0x12; // Alt
             const uint KEYDOWN = 0x0000, KEYUP = 0x0002;
-            keybd_event(VK_CONTROL, 0, KEYDOWN, UIntPtr.Zero);
-            keybd_event(key,         0, KEYDOWN, UIntPtr.Zero);
-            keybd_event(key,         0, KEYUP,   UIntPtr.Zero);
-            keybd_event(VK_CONTROL, 0, KEYUP,   UIntPtr.Zero);
+
+            var parts = hotkey.Split('+');
+            var modifiers = new List<byte>();
+            byte mainKey = 0;
+
+            foreach (var part in parts)
+            {
+                switch (part.Trim().ToUpper())
+                {
+                    case "CTRL":
+                    case "CONTROL":
+                        modifiers.Add(VK_CONTROL);
+                        break;
+                    case "ALT":
+                        modifiers.Add(VK_MENU);
+                        break;
+                    case "SHIFT":
+                        modifiers.Add(VK_SHIFT);
+                        break;
+                    case "DELETE":
+                        mainKey = 0x2E;
+                        break;
+                    case "ESC":
+                    case "ESCAPE":
+                        mainKey = 0x1B;
+                        break;
+                    default:
+                        if (part.Length == 1)
+                            mainKey = (byte)char.ToUpper(part[0]);
+                        else if (part.StartsWith("F") && int.TryParse(part[1..], out int f) && f >= 1 && f <= 24)
+                            mainKey = (byte)(0x70 + f - 1);
+                        break;
+                }
+            }
+
+            foreach (var m in modifiers)
+                keybd_event(m, 0, KEYDOWN, UIntPtr.Zero);
+
+            if (mainKey != 0)
+            {
+                keybd_event(mainKey, 0, KEYDOWN, UIntPtr.Zero);
+                keybd_event(mainKey, 0, KEYUP,   UIntPtr.Zero);
+            }
+
+            for (int i = modifiers.Count - 1; i >= 0; i--)
+                keybd_event(modifiers[i], 0, KEYUP, UIntPtr.Zero);
         }
 
         protected override void OnClosed(EventArgs e)

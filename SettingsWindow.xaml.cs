@@ -21,6 +21,15 @@ namespace PieOverlay
             Txt6.Text = _parent.ItemNames[6];
             Txt7.Text = _parent.ItemNames[7];
 
+            Hot0.Text = _parent.ItemHotkeys[0];
+            Hot1.Text = _parent.ItemHotkeys[1];
+            Hot2.Text = _parent.ItemHotkeys[2];
+            Hot3.Text = _parent.ItemHotkeys[3];
+            Hot4.Text = _parent.ItemHotkeys[4];
+            Hot5.Text = _parent.ItemHotkeys[5];
+            Hot6.Text = _parent.ItemHotkeys[6];
+            Hot7.Text = _parent.ItemHotkeys[7];
+
             // load radius
             SldRadius.Value = _parent.Radius;
         }
@@ -36,6 +45,15 @@ namespace PieOverlay
             _parent.ItemNames[5] = Txt5.Text;
             _parent.ItemNames[6] = Txt6.Text;
             _parent.ItemNames[7] = Txt7.Text;
+
+            _parent.ItemHotkeys[0] = Hot0.Text;
+            _parent.ItemHotkeys[1] = Hot1.Text;
+            _parent.ItemHotkeys[2] = Hot2.Text;
+            _parent.ItemHotkeys[3] = Hot3.Text;
+            _parent.ItemHotkeys[4] = Hot4.Text;
+            _parent.ItemHotkeys[5] = Hot5.Text;
+            _parent.ItemHotkeys[6] = Hot6.Text;
+            _parent.ItemHotkeys[7] = Hot7.Text;
 
             _parent.Radius = SldRadius.Value;
 
