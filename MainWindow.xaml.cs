@@ -26,6 +26,9 @@ namespace PieOverlay
         // Radius of the pie menu; default 100 but configurable in settings
         public double Radius { get; set; } = 100;
 
+        // Dead zone radius around center where no item is selected
+        public double DeadzoneRadius { get; set; } = 20;
+
         // Selection behavior: hover (default) or click
         public SelectionMode Behavior { get; set; } = SelectionMode.Hover;
 
@@ -132,7 +135,8 @@ namespace PieOverlay
                         double dy = cp.Y - wnd._centerY;
 
                         int idx = -1;
-                        if (dx != 0 || dy != 0)
+                        double distance = Math.Sqrt(dx * dx + dy * dy);
+                        if (distance >= wnd.DeadzoneRadius)
                         {
                             double angle = Math.Atan2(dy, dx);
                             double degrees = angle * 180 / Math.PI;
