@@ -107,9 +107,8 @@ namespace PieOverlay
                         double ch = wnd.MainCanvas.Height;
                         double dx = rel.X - cw / 2;
                         double dy = rel.Y - ch / 2;
-                        double dist = Math.Sqrt(dx * dx + dy * dy);
 
-                        if (dist >= wnd.Radius / 2)
+                        if (dx != 0 || dy != 0)
                         {
                             double angle = Math.Atan2(dy, dx);
                             double degrees = angle * 180 / Math.PI;
