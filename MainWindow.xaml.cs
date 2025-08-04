@@ -8,7 +8,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Threading;
-using MediaColor = System.Windows.Media.Color;
 
 namespace PieOverlay
 {
@@ -31,7 +30,7 @@ namespace PieOverlay
         public double DeadzoneRadius { get; set; } = 20;
 
         // Appearance of item labels
-        public MediaColor ItemForeground { get; set; } = Colors.DarkBlue;
+        public System.Windows.Media.Color ItemForeground { get; set; } = System.Windows.Media.Colors.DarkBlue;
         public double ItemFontSize { get; set; } = 14;
         public string ItemFontFamily { get; set; } = "Segoe UI";
 
@@ -263,7 +262,7 @@ namespace PieOverlay
                 BlurRadius  = 8,
                 ShadowDepth = 2,
                 Opacity     = 0.4,
-                Color       = Colors.Black
+                Color       = System.Windows.Media.Colors.Black
             };
 
             for (int i = 0; i < count; i++)

@@ -1,16 +1,14 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
-using DrawingColor = System.Drawing.Color;
 using Forms = System.Windows.Forms;
-using MediaColor = System.Windows.Media.Color;
 
 namespace PieOverlay
 {
     public partial class SettingsWindow : Window
     {
         private readonly MainWindow _parent;
-        private MediaColor _selectedColor;
+        private System.Windows.Media.Color _selectedColor;
 
         public SettingsWindow(MainWindow parent)
         {
@@ -86,10 +84,10 @@ namespace PieOverlay
         private void OnChooseColor(object sender, RoutedEventArgs e)
         {
             using var dlg = new Forms.ColorDialog();
-            dlg.Color = DrawingColor.FromArgb(_selectedColor.A, _selectedColor.R, _selectedColor.G, _selectedColor.B);
+            dlg.Color = System.Drawing.Color.FromArgb(_selectedColor.A, _selectedColor.R, _selectedColor.G, _selectedColor.B);
             if (dlg.ShowDialog() == Forms.DialogResult.OK)
             {
-                _selectedColor = MediaColor.FromArgb(dlg.Color.A, dlg.Color.R, dlg.Color.G, dlg.Color.B);
+                _selectedColor = System.Windows.Media.Color.FromArgb(dlg.Color.A, dlg.Color.R, dlg.Color.G, dlg.Color.B);
                 BtnColor.Background = new SolidColorBrush(_selectedColor);
             }
         }
