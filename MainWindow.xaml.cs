@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -10,11 +11,25 @@ using System.Windows.Threading;
 
 namespace PieOverlay
 {
+    public enum SelectionMode { Hover, Click }
+
     public partial class MainWindow : Window
     {
-        // Keeps the 8 labels; defaulted here but will be overridden in Settings
-        public string[] ItemNames { get; } = 
-            { "Item1","Item2","Item3","Item4","Item5","Item6","Item7","Item8" };
+        // Item labels and hotkeys; defaulted but resized via settings
+        public List<string> ItemNames   { get; } = new();
+        public List<string> ItemHotkeys { get; } = new();
+
+        // Radius of the pie menu and optional dead zone
+        public double Radius        { get; set; } = 100;
+        public double DeadZoneRadius{ get; set; } = 0;
+
+        // Visual settings for items
+        public Brush     ItemColor      { get; set; } = Brushes.LightBlue;
+        public double    ItemFontSize   { get; set; } = 14;
+        public FontFamily ItemFontFamily { get; set; } = new("Segoe UI");
+
+        // Selection behavior: hover (default) or click
+        public SelectionMode Behavior { get; set; } = SelectionMode.Hover;
 
         // Low-level hook constants
         private const int WH_KEYBOARD_LL   = 13;
@@ -28,6 +43,9 @@ namespace PieOverlay
         private static IntPtr _hookID = IntPtr.Zero;
         private static LowLevelKeyboardProc _proc = HookCallback;
         private bool _visible;
+        private IntPtr _prevWindow;
+        private double _centerX;
+        private double _centerY;
 
         public MainWindow()
         {
@@ -38,13 +56,18 @@ namespace PieOverlay
 
             Topmost    = true;
             Visibility = Visibility.Hidden;
+
+            EnsureItemCount(8);
         }
 
         // Open the settings dialog
         public void OpenSettings()
         {
-            var dlg = new SettingsWindow(this);
-            dlg.Owner = this;
+            var dlg = new SettingsWindow(this)
+            {
+                Owner = null,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen
+            };
             dlg.ShowDialog();
         }
 
@@ -79,33 +102,59 @@ namespace PieOverlay
                     {
                         wnd.OpenSettings();
                     }
-                    // "1" down shows pie
-                    else if (vkCode == VK_1 && down && !wnd._visible)
+                    // "1" down handles showing/hiding
+                    else if (vkCode == VK_1 && down)
                     {
-                        wnd.DrawEightRects();
-                        wnd.Visibility = Visibility.Visible;
-                        wnd._visible   = true;
-                    }
-                    // "1" up selects hovered slice & hides
-                    else if (vkCode == VK_1 && up && wnd._visible)
-                    {
-                        // hit‐test
-                        Point rel = Mouse.GetPosition(wnd.MainCanvas);
-                        var hit = VisualTreeHelper.HitTest(wnd.MainCanvas, rel);
-                        if (hit?.VisualHit is Border b)
+                        if (wnd.Behavior == SelectionMode.Hover)
                         {
-                            int idx = wnd.MainCanvas.Children.IndexOf(b);
-                            switch (idx)
+                            if (!wnd._visible)
                             {
-                                case 0: SendCtrlKey(0x41); break; // Ctrl+A
-                                case 1: SendCtrlKey(0x4E); break; // Ctrl+N
-                                // …etc for items 3–8
+                                wnd._prevWindow = GetForegroundWindow();
+                                wnd.DrawEightRects();
+                                wnd.Visibility = Visibility.Visible;
+                                wnd._visible   = true;
                             }
                         }
+                        else // click behavior toggles
+                        {
+                            if (!wnd._visible)
+                            {
+                                wnd._prevWindow = GetForegroundWindow();
+                                wnd.DrawEightRects();
+                                wnd.Visibility = Visibility.Visible;
+                                wnd._visible   = true;
+                            }
+                            else
+                            {
+                                wnd.HideOverlay();
+                            }
+                        }
+                    }
+                    // "1" up selects hovered slice in hover mode
+                    else if (vkCode == VK_1 && up && wnd._visible && wnd.Behavior == SelectionMode.Hover)
+                    {
+                        GetCursorPos(out POINT cp);
 
-                        wnd.MainCanvas.Children.Clear();
-                        wnd.Visibility = Visibility.Hidden;
-                        wnd._visible   = false;
+                        double dx = cp.X - wnd._centerX;
+                        double dy = cp.Y - wnd._centerY;
+
+                        int idx = -1;
+                        if (dx != 0 || dy != 0)
+                        {
+                            double angle = Math.Atan2(dy, dx);
+                            double degrees = angle * 180 / Math.PI;
+                            if (degrees < 0) degrees += 360;
+
+                            int count = wnd.ItemHotkeys.Count;
+                            double seg = 360.0 / count;
+                            idx = (int)Math.Floor((degrees + seg / 2) / seg) % count;
+                        }
+
+                        double dist = Math.Sqrt(dx*dx + dy*dy);
+                        if (dist < wnd.DeadZoneRadius)
+                            idx = -1;
+
+                        wnd.ActivateIndex(idx);
                     }
                 }, DispatcherPriority.Send);
 
@@ -117,14 +166,92 @@ namespace PieOverlay
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
 
-        private static void SendCtrlKey(byte key)
+        private static void SendHotkey(string hotkey)
         {
-            const byte VK_CONTROL      = 0x11;
+            if (string.IsNullOrWhiteSpace(hotkey))
+                return;
+
+            const byte VK_CONTROL = 0x11;
+            const byte VK_SHIFT   = 0x10;
+            const byte VK_MENU    = 0x12; // Alt
             const uint KEYDOWN = 0x0000, KEYUP = 0x0002;
-            keybd_event(VK_CONTROL, 0, KEYDOWN, UIntPtr.Zero);
-            keybd_event(key,         0, KEYDOWN, UIntPtr.Zero);
-            keybd_event(key,         0, KEYUP,   UIntPtr.Zero);
-            keybd_event(VK_CONTROL, 0, KEYUP,   UIntPtr.Zero);
+
+            try
+            {
+                var converter = new KeyGestureConverter();
+                if (converter.ConvertFromString(hotkey) is not KeyGesture gesture)
+                    return;
+
+                var modifiers = new List<byte>();
+                if (gesture.Modifiers.HasFlag(ModifierKeys.Control)) modifiers.Add(VK_CONTROL);
+                if (gesture.Modifiers.HasFlag(ModifierKeys.Shift))   modifiers.Add(VK_SHIFT);
+                if (gesture.Modifiers.HasFlag(ModifierKeys.Alt))     modifiers.Add(VK_MENU);
+
+                byte mainKey = (byte)KeyInterop.VirtualKeyFromKey(gesture.Key);
+
+                foreach (var m in modifiers)
+                    keybd_event(m, 0, KEYDOWN, UIntPtr.Zero);
+
+                keybd_event(mainKey, 0, KEYDOWN, UIntPtr.Zero);
+                keybd_event(mainKey, 0, KEYUP,   UIntPtr.Zero);
+
+                for (int i = modifiers.Count - 1; i >= 0; i--)
+                    keybd_event(modifiers[i], 0, KEYUP, UIntPtr.Zero);
+            }
+            catch (FormatException)
+            {
+                // ignore invalid hotkey strings
+            }
+        }
+
+        private void ActivateIndex(int idx)
+        {
+            HideOverlay();
+
+            if (idx >= 0 && idx < ItemHotkeys.Count)
+            {
+                string toSend = ItemHotkeys[idx];
+                if (!string.IsNullOrWhiteSpace(toSend))
+                    Dispatcher.BeginInvoke(new Action(() => SendHotkey(toSend)), DispatcherPriority.Background);
+            }
+        }
+
+        private void HideOverlay()
+        {
+            MainCanvas.Children.Clear();
+            Visibility = Visibility.Hidden;
+            _visible   = false;
+
+            if (_prevWindow != IntPtr.Zero)
+                SetForegroundWindow(_prevWindow);
+        }
+
+        public void EnsureItemCount(int count)
+        {
+            if (count < 1) count = 1;
+            if (count > 50) count = 50;
+
+            while (ItemNames.Count < count)
+            {
+                int i = ItemNames.Count + 1;
+                ItemNames.Add($"Item{i}");
+                ItemHotkeys.Add(string.Empty);
+            }
+
+            while (ItemNames.Count > count)
+            {
+                ItemNames.RemoveAt(ItemNames.Count - 1);
+                ItemHotkeys.RemoveAt(ItemHotkeys.Count - 1);
+            }
+        }
+
+        private void OnItemClick(object sender, MouseButtonEventArgs e)
+        {
+            if (Behavior != SelectionMode.Click)
+                return;
+
+            if (sender is Border b && b.Tag is int idx)
+                ActivateIndex(idx);
         }
 
         protected override void OnClosed(EventArgs e)
@@ -137,12 +264,15 @@ namespace PieOverlay
         private void DrawEightRects()
         {
             GetCursorPos(out POINT p);
+            _centerX = p.X;
+            _centerY = p.Y;
+
             var pt = new Point(p.X, p.Y);
             if (PresentationSource.FromVisual(this) is { CompositionTarget: var ct })
                 pt = ct.TransformFromDevice.Transform(pt);
 
-            const int count = 8;
-            double radius = 100, w = 80, h = 30;
+            int count = ItemNames.Count;
+            double radius = Radius, w = 80, h = 30;
             double cw = radius * 2 + w, ch = radius * 2 + h;
             Width  = cw;  Height = ch;
             MainCanvas.Width  = cw;
@@ -166,21 +296,25 @@ namespace PieOverlay
                     Width        = w,
                     Height       = h,
                     CornerRadius = new CornerRadius(6),
-                    Background   = Brushes.LightBlue,
+                    Background   = ItemColor,
                     Effect       = shadow
                 };
 
                 var label = new TextBlock {
                     Text                = ItemNames[i],
-                    FontSize            = 14,
+                    FontSize            = ItemFontSize,
+                    FontFamily          = ItemFontFamily,
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment   = VerticalAlignment.Center,
-                    Foreground          = Brushes.DarkBlue
+                    Foreground          = Brushes.Black
                 };
 
                 border.Child = label;
                 Canvas.SetLeft(border, x);
                 Canvas.SetTop(border, y);
+                border.Tag = i;
+                if (Behavior == SelectionMode.Click)
+                    border.MouseLeftButtonDown += OnItemClick;
                 MainCanvas.Children.Add(border);
             }
         }
@@ -189,6 +323,8 @@ namespace PieOverlay
         #region Win32 + Hook P/Invoke
         [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT lpPoint);
         [StructLayout(LayoutKind.Sequential)] private struct POINT { public int X, Y; }
+        [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hWnd);
         [DllImport("user32.dll", SetLastError=true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
         [DllImport("user32.dll", SetLastError=true)]
