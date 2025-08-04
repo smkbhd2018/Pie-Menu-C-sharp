@@ -11,6 +11,8 @@ using System.Windows.Threading;
 
 namespace PieOverlay
 {
+    public enum SelectionMode { Hover, Click }
+
     public partial class MainWindow : Window
     {
         // Keeps the 8 labels; defaulted here but will be overridden in Settings
@@ -23,6 +25,9 @@ namespace PieOverlay
 
         // Radius of the pie menu; default 100 but configurable in settings
         public double Radius { get; set; } = 100;
+
+        // Selection behavior: hover (default) or click
+        public SelectionMode Behavior { get; set; } = SelectionMode.Hover;
 
         // Low-level hook constants
         private const int WH_KEYBOARD_LL   = 13;
@@ -90,24 +95,43 @@ namespace PieOverlay
                     {
                         wnd.OpenSettings();
                     }
-                    // "1" down shows pie
-                    else if (vkCode == VK_1 && down && !wnd._visible)
+                    // "1" down handles showing/hiding
+                    else if (vkCode == VK_1 && down)
                     {
-                        wnd._prevWindow = GetForegroundWindow();
-                        wnd.DrawEightRects();
-                        wnd.Visibility = Visibility.Visible;
-                        wnd._visible   = true;
+                        if (wnd.Behavior == SelectionMode.Hover)
+                        {
+                            if (!wnd._visible)
+                            {
+                                wnd._prevWindow = GetForegroundWindow();
+                                wnd.DrawEightRects();
+                                wnd.Visibility = Visibility.Visible;
+                                wnd._visible   = true;
+                            }
+                        }
+                        else // click behavior toggles
+                        {
+                            if (!wnd._visible)
+                            {
+                                wnd._prevWindow = GetForegroundWindow();
+                                wnd.DrawEightRects();
+                                wnd.Visibility = Visibility.Visible;
+                                wnd._visible   = true;
+                            }
+                            else
+                            {
+                                wnd.HideOverlay();
+                            }
+                        }
                     }
-                    // "1" up selects hovered slice & hides
-                    else if (vkCode == VK_1 && up && wnd._visible)
+                    // "1" up selects hovered slice in hover mode
+                    else if (vkCode == VK_1 && up && wnd._visible && wnd.Behavior == SelectionMode.Hover)
                     {
                         GetCursorPos(out POINT cp);
-
-                        string? toSend = null;
 
                         double dx = cp.X - wnd._centerX;
                         double dy = cp.Y - wnd._centerY;
 
+                        int idx = -1;
                         if (dx != 0 || dy != 0)
                         {
                             double angle = Math.Atan2(dy, dx);
@@ -116,20 +140,10 @@ namespace PieOverlay
 
                             int count = wnd.ItemHotkeys.Length;
                             double seg = 360.0 / count;
-                            int idx = (int)Math.Floor((degrees + seg / 2) / seg) % count;
-                            if (idx >= 0 && idx < wnd.ItemHotkeys.Length)
-                                toSend = wnd.ItemHotkeys[idx];
+                            idx = (int)Math.Floor((degrees + seg / 2) / seg) % count;
                         }
 
-                        wnd.MainCanvas.Children.Clear();
-                        wnd.Visibility = Visibility.Hidden;
-                        wnd._visible   = false;
-
-                        if (wnd._prevWindow != IntPtr.Zero)
-                            SetForegroundWindow(wnd._prevWindow);
-
-                        if (!string.IsNullOrWhiteSpace(toSend))
-                            wnd.Dispatcher.BeginInvoke(new Action(() => SendHotkey(toSend)), DispatcherPriority.Background);
+                        wnd.ActivateIndex(idx);
                     }
                 }, DispatcherPriority.Send);
 
@@ -177,6 +191,37 @@ namespace PieOverlay
             {
                 // ignore invalid hotkey strings
             }
+        }
+
+        private void ActivateIndex(int idx)
+        {
+            HideOverlay();
+
+            if (idx >= 0 && idx < ItemHotkeys.Length)
+            {
+                string toSend = ItemHotkeys[idx];
+                if (!string.IsNullOrWhiteSpace(toSend))
+                    Dispatcher.BeginInvoke(new Action(() => SendHotkey(toSend)), DispatcherPriority.Background);
+            }
+        }
+
+        private void HideOverlay()
+        {
+            MainCanvas.Children.Clear();
+            Visibility = Visibility.Hidden;
+            _visible   = false;
+
+            if (_prevWindow != IntPtr.Zero)
+                SetForegroundWindow(_prevWindow);
+        }
+
+        private void OnItemClick(object sender, MouseButtonEventArgs e)
+        {
+            if (Behavior != SelectionMode.Click)
+                return;
+
+            if (sender is Border b && b.Tag is int idx)
+                ActivateIndex(idx);
         }
 
         protected override void OnClosed(EventArgs e)
@@ -236,6 +281,9 @@ namespace PieOverlay
                 border.Child = label;
                 Canvas.SetLeft(border, x);
                 Canvas.SetTop(border, y);
+                border.Tag = i;
+                if (Behavior == SelectionMode.Click)
+                    border.MouseLeftButtonDown += OnItemClick;
                 MainCanvas.Children.Add(border);
             }
         }

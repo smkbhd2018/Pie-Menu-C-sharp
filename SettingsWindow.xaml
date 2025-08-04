@@ -18,6 +18,7 @@
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
       <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
     </Grid.RowDefinitions>
     <Grid.ColumnDefinitions>
       <ColumnDefinition Width="Auto"/>
@@ -58,11 +59,17 @@
     <TextBox x:Name="Txt7" Grid.Row="7" Grid.Column="1" Margin="4"/>
     <TextBox x:Name="Hot7" Grid.Row="7" Grid.Column="2" Margin="4"/>
 
-    <Label Content="Radius:" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center"/>
-    <Slider x:Name="SldRadius" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Margin="4" Minimum="50" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="True"/>
+    <Label Content="Mode:" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center"/>
+    <ComboBox x:Name="CmbMode" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Margin="4">
+      <ComboBoxItem Content="Hover"/>
+      <ComboBoxItem Content="Click"/>
+    </ComboBox>
+
+    <Label Content="Radius:" Grid.Row="9" Grid.Column="0" VerticalAlignment="Center"/>
+    <Slider x:Name="SldRadius" Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="2" Margin="4" Minimum="50" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="True"/>
 
     <!-- buttons -->
-    <StackPanel Grid.Row="9" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+    <StackPanel Grid.Row="10" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
       <Button Content="Save"   Width="75" Margin="4" Click="OnSave"/>
       <Button Content="Cancel" Width="75" Margin="4" Click="OnCancel"/>
     </StackPanel>

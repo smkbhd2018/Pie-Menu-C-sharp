@@ -30,8 +30,9 @@ namespace PieOverlay
             Hot6.Text = _parent.ItemHotkeys[6];
             Hot7.Text = _parent.ItemHotkeys[7];
 
-            // load radius
+            // load radius and behavior
             SldRadius.Value = _parent.Radius;
+            CmbMode.SelectedIndex = (int)_parent.Behavior;
         }
 
         private void OnSave(object sender, RoutedEventArgs e)
@@ -56,6 +57,7 @@ namespace PieOverlay
             _parent.ItemHotkeys[7] = Hot7.Text.Trim();
 
             _parent.Radius = SldRadius.Value;
+            _parent.Behavior = (SelectionMode)CmbMode.SelectedIndex;
 
             Close();
         }
