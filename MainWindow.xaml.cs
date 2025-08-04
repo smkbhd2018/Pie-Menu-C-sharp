@@ -29,6 +29,11 @@ namespace PieOverlay
         // Dead zone radius around center where no item is selected
         public double DeadzoneRadius { get; set; } = 20;
 
+        // Appearance of item labels
+        public Color ItemForeground { get; set; } = Colors.DarkBlue;
+        public double ItemFontSize { get; set; } = 14;
+        public string ItemFontFamily { get; set; } = "Segoe UI";
+
         // Selection behavior: hover (default) or click
         public SelectionMode Behavior { get; set; } = SelectionMode.Hover;
 
@@ -276,10 +281,11 @@ namespace PieOverlay
 
                 var label = new TextBlock {
                     Text                = ItemNames[i],
-                    FontSize            = 14,
+                    FontSize            = ItemFontSize,
+                    FontFamily          = new FontFamily(ItemFontFamily),
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment   = VerticalAlignment.Center,
-                    Foreground          = Brushes.DarkBlue
+                    Foreground          = new SolidColorBrush(ItemForeground)
                 };
 
                 border.Child = label;

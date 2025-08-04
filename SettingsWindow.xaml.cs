@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Media;
 
 namespace PieOverlay
 {
@@ -34,6 +35,9 @@ namespace PieOverlay
             SldRadius.Value    = _parent.Radius;
             SldDeadzone.Value  = _parent.DeadzoneRadius;
             CmbMode.SelectedIndex = (int)_parent.Behavior;
+            TxtColor.Text      = _parent.ItemForeground.ToString();
+            SldFontSize.Value  = _parent.ItemFontSize;
+            TxtFontFamily.Text = _parent.ItemFontFamily;
         }
 
         private void OnSave(object sender, RoutedEventArgs e)
@@ -60,6 +64,9 @@ namespace PieOverlay
             _parent.Radius        = SldRadius.Value;
             _parent.DeadzoneRadius = SldDeadzone.Value;
             _parent.Behavior      = (SelectionMode)CmbMode.SelectedIndex;
+            try { _parent.ItemForeground = (Color)ColorConverter.ConvertFromString(TxtColor.Text); } catch { }
+            _parent.ItemFontSize   = SldFontSize.Value;
+            _parent.ItemFontFamily = TxtFontFamily.Text;
 
             Close();
         }
