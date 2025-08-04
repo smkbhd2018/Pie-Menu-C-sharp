@@ -15,16 +15,18 @@ namespace PieOverlay
 
     public partial class MainWindow : Window
     {
-        // Keeps the 8 labels; defaulted here but will be overridden in Settings
-        public string[] ItemNames { get; } =
-            { "Item1","Item2","Item3","Item4","Item5","Item6","Item7","Item8" };
+        // Item labels and hotkeys; defaulted but resized via settings
+        public List<string> ItemNames   { get; } = new();
+        public List<string> ItemHotkeys { get; } = new();
 
-        // Hotkeys for each item; editable via settings
-        public string[] ItemHotkeys { get; } =
-            { "Ctrl+A","Ctrl+N","Delete","Esc","","","","" };
+        // Radius of the pie menu and optional dead zone
+        public double Radius        { get; set; } = 100;
+        public double DeadZoneRadius{ get; set; } = 0;
 
-        // Radius of the pie menu; default 100 but configurable in settings
-        public double Radius { get; set; } = 100;
+        // Visual settings for items
+        public Brush     ItemColor      { get; set; } = Brushes.LightBlue;
+        public double    ItemFontSize   { get; set; } = 14;
+        public FontFamily ItemFontFamily { get; set; } = new("Segoe UI");
 
         // Selection behavior: hover (default) or click
         public SelectionMode Behavior { get; set; } = SelectionMode.Hover;
@@ -54,6 +56,8 @@ namespace PieOverlay
 
             Topmost    = true;
             Visibility = Visibility.Hidden;
+
+            EnsureItemCount(8);
         }
 
         // Open the settings dialog
@@ -138,10 +142,14 @@ namespace PieOverlay
                             double degrees = angle * 180 / Math.PI;
                             if (degrees < 0) degrees += 360;
 
-                            int count = wnd.ItemHotkeys.Length;
+                            int count = wnd.ItemHotkeys.Count;
                             double seg = 360.0 / count;
                             idx = (int)Math.Floor((degrees + seg / 2) / seg) % count;
                         }
+
+                        double dist = Math.Sqrt(dx*dx + dy*dy);
+                        if (dist < wnd.DeadZoneRadius)
+                            idx = -1;
 
                         wnd.ActivateIndex(idx);
                     }
@@ -197,7 +205,7 @@ namespace PieOverlay
         {
             HideOverlay();
 
-            if (idx >= 0 && idx < ItemHotkeys.Length)
+            if (idx >= 0 && idx < ItemHotkeys.Count)
             {
                 string toSend = ItemHotkeys[idx];
                 if (!string.IsNullOrWhiteSpace(toSend))
@@ -213,6 +221,25 @@ namespace PieOverlay
 
             if (_prevWindow != IntPtr.Zero)
                 SetForegroundWindow(_prevWindow);
+        }
+
+        public void EnsureItemCount(int count)
+        {
+            if (count < 1) count = 1;
+            if (count > 50) count = 50;
+
+            while (ItemNames.Count < count)
+            {
+                int i = ItemNames.Count + 1;
+                ItemNames.Add($"Item{i}");
+                ItemHotkeys.Add(string.Empty);
+            }
+
+            while (ItemNames.Count > count)
+            {
+                ItemNames.RemoveAt(ItemNames.Count - 1);
+                ItemHotkeys.RemoveAt(ItemHotkeys.Count - 1);
+            }
         }
 
         private void OnItemClick(object sender, MouseButtonEventArgs e)
@@ -241,7 +268,7 @@ namespace PieOverlay
             if (PresentationSource.FromVisual(this) is { CompositionTarget: var ct })
                 pt = ct.TransformFromDevice.Transform(pt);
 
-            const int count = 8;
+            int count = ItemNames.Count;
             double radius = Radius, w = 80, h = 30;
             double cw = radius * 2 + w, ch = radius * 2 + h;
             Width  = cw;  Height = ch;
@@ -266,16 +293,17 @@ namespace PieOverlay
                     Width        = w,
                     Height       = h,
                     CornerRadius = new CornerRadius(6),
-                    Background   = Brushes.LightBlue,
+                    Background   = ItemColor,
                     Effect       = shadow
                 };
 
                 var label = new TextBlock {
                     Text                = ItemNames[i],
-                    FontSize            = 14,
+                    FontSize            = ItemFontSize,
+                    FontFamily          = ItemFontFamily,
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment   = VerticalAlignment.Center,
-                    Foreground          = Brushes.DarkBlue
+                    Foreground          = Brushes.Black
                 };
 
                 border.Child = label;

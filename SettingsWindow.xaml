@@ -2,76 +2,57 @@
     x:Class="PieOverlay.SettingsWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="Pie Menu Settings"
-    Height="350" Width="400"
-    WindowStartupLocation="CenterOwner"
-    ResizeMode="NoResize">
-  <Grid Margin="10">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="Auto"/>
-      <ColumnDefinition Width="*"/>
-      <ColumnDefinition Width="*"/>
-    </Grid.ColumnDefinitions>
+    Title="Pie Menu Settings" Height="450" Width="400"
+    WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
+  <DockPanel Margin="10">
+    <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto">
+      <StackPanel x:Name="RootStack">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+          <Label Content="Items:" Width="60"/>
+          <Slider x:Name="SldCount" Minimum="1" Maximum="50" Width="200" ValueChanged="OnCountChanged"/>
+          <TextBlock x:Name="TxtCount" Margin="5,0,0,0" Width="30"/>
+        </StackPanel>
 
-    <!-- labels & textboxes -->
-    <Label Content="Item 1:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"/>
-    <TextBox x:Name="Txt0" Grid.Row="0" Grid.Column="1" Margin="4"/>
-    <TextBox x:Name="Hot0" Grid.Row="0" Grid.Column="2" Margin="4"/>
+        <StackPanel x:Name="ItemsPanel"/>
 
-    <Label Content="Item 2:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"/>
-    <TextBox x:Name="Txt1" Grid.Row="1" Grid.Column="1" Margin="4"/>
-    <TextBox x:Name="Hot1" Grid.Row="1" Grid.Column="2" Margin="4"/>
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+          <Label Content="Mode:" Width="60"/>
+          <ComboBox x:Name="CmbMode" Width="150">
+            <ComboBoxItem Content="Hover"/>
+            <ComboBoxItem Content="Click"/>
+          </ComboBox>
+        </StackPanel>
 
-    <Label Content="Item 3:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center"/>
-    <TextBox x:Name="Txt2" Grid.Row="2" Grid.Column="1" Margin="4"/>
-    <TextBox x:Name="Hot2" Grid.Row="2" Grid.Column="2" Margin="4"/>
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+          <Label Content="Radius:" Width="60"/>
+          <Slider x:Name="SldRadius" Minimum="50" Maximum="200" Width="200" TickFrequency="10" IsSnapToTickEnabled="True"/>
+        </StackPanel>
 
-    <Label Content="Item 4:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
-    <TextBox x:Name="Txt3" Grid.Row="3" Grid.Column="1" Margin="4"/>
-    <TextBox x:Name="Hot3" Grid.Row="3" Grid.Column="2" Margin="4"/>
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+          <Label Content="Dead Zone:" Width="60"/>
+          <Slider x:Name="SldDead" Minimum="0" Maximum="100" Width="200" TickFrequency="5" IsSnapToTickEnabled="True"/>
+        </StackPanel>
 
-    <Label Content="Item 5:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center"/>
-    <TextBox x:Name="Txt4" Grid.Row="4" Grid.Column="1" Margin="4"/>
-    <TextBox x:Name="Hot4" Grid.Row="4" Grid.Column="2" Margin="4"/>
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+          <Label Content="Color:" Width="60"/>
+          <TextBox x:Name="TxtColor" Width="200"/>
+        </StackPanel>
 
-    <Label Content="Item 6:" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center"/>
-    <TextBox x:Name="Txt5" Grid.Row="5" Grid.Column="1" Margin="4"/>
-    <TextBox x:Name="Hot5" Grid.Row="5" Grid.Column="2" Margin="4"/>
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+          <Label Content="Font Size:" Width="60"/>
+          <Slider x:Name="SldFont" Minimum="8" Maximum="40" Width="200" TickFrequency="1" IsSnapToTickEnabled="True"/>
+        </StackPanel>
 
-    <Label Content="Item 7:" Grid.Row="6" Grid.Column="0" VerticalAlignment="Center"/>
-    <TextBox x:Name="Txt6" Grid.Row="6" Grid.Column="1" Margin="4"/>
-    <TextBox x:Name="Hot6" Grid.Row="6" Grid.Column="2" Margin="4"/>
+        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+          <Label Content="Font:" Width="60"/>
+          <TextBox x:Name="TxtFont" Width="200"/>
+        </StackPanel>
+      </StackPanel>
+    </ScrollViewer>
 
-    <Label Content="Item 8:" Grid.Row="7" Grid.Column="0" VerticalAlignment="Center"/>
-    <TextBox x:Name="Txt7" Grid.Row="7" Grid.Column="1" Margin="4"/>
-    <TextBox x:Name="Hot7" Grid.Row="7" Grid.Column="2" Margin="4"/>
-
-    <Label Content="Mode:" Grid.Row="8" Grid.Column="0" VerticalAlignment="Center"/>
-    <ComboBox x:Name="CmbMode" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Margin="4">
-      <ComboBoxItem Content="Hover"/>
-      <ComboBoxItem Content="Click"/>
-    </ComboBox>
-
-    <Label Content="Radius:" Grid.Row="9" Grid.Column="0" VerticalAlignment="Center"/>
-    <Slider x:Name="SldRadius" Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="2" Margin="4" Minimum="50" Maximum="200" TickFrequency="10" IsSnapToTickEnabled="True"/>
-
-    <!-- buttons -->
-    <StackPanel Grid.Row="10" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-      <Button Content="Save"   Width="75" Margin="4" Click="OnSave"/>
+    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+      <Button Content="Save" Width="75" Margin="4" Click="OnSave"/>
       <Button Content="Cancel" Width="75" Margin="4" Click="OnCancel"/>
     </StackPanel>
-  </Grid>
+  </DockPanel>
 </Window>
