@@ -36,6 +36,7 @@ namespace PieOverlay
         private static IntPtr _hookID = IntPtr.Zero;
         private static LowLevelKeyboardProc _proc = HookCallback;
         private bool _visible;
+        private IntPtr _prevWindow;
 
         public MainWindow()
         {
@@ -90,6 +91,7 @@ namespace PieOverlay
                     // "1" down shows pie
                     else if (vkCode == VK_1 && down && !wnd._visible)
                     {
+                        wnd._prevWindow = GetForegroundWindow();
                         wnd.DrawEightRects();
                         wnd.Visibility = Visibility.Visible;
                         wnd._visible   = true;
@@ -112,16 +114,23 @@ namespace PieOverlay
                                 cur = VisualTreeHelper.GetParent(cur);
                         }
 
+                        string? toSend = null;
                         if (border != null)
                         {
                             int idx = wnd.MainCanvas.Children.IndexOf(border);
                             if (idx >= 0 && idx < wnd.ItemHotkeys.Length)
-                                SendHotkey(wnd.ItemHotkeys[idx]);
+                                toSend = wnd.ItemHotkeys[idx];
                         }
 
                         wnd.MainCanvas.Children.Clear();
                         wnd.Visibility = Visibility.Hidden;
                         wnd._visible   = false;
+
+                        if (wnd._prevWindow != IntPtr.Zero)
+                            SetForegroundWindow(wnd._prevWindow);
+
+                        if (!string.IsNullOrWhiteSpace(toSend))
+                            wnd.Dispatcher.BeginInvoke(new Action(() => SendHotkey(toSend)), DispatcherPriority.Background);
                     }
                 }, DispatcherPriority.Send);
 
@@ -233,6 +242,8 @@ namespace PieOverlay
         #region Win32 + Hook P/Invoke
         [DllImport("user32.dll")] private static extern bool GetCursorPos(out POINT lpPoint);
         [StructLayout(LayoutKind.Sequential)] private struct POINT { public int X, Y; }
+        [DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+        [DllImport("user32.dll")] private static extern bool SetForegroundWindow(IntPtr hWnd);
         [DllImport("user32.dll", SetLastError=true)]
         private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
         [DllImport("user32.dll", SetLastError=true)]
