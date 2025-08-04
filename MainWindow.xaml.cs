@@ -37,6 +37,8 @@ namespace PieOverlay
         private static LowLevelKeyboardProc _proc = HookCallback;
         private bool _visible;
         private IntPtr _prevWindow;
+        private double _centerX;
+        private double _centerY;
 
         public MainWindow()
         {
@@ -99,14 +101,12 @@ namespace PieOverlay
                     // "1" up selects hovered slice & hides
                     else if (vkCode == VK_1 && up && wnd._visible)
                     {
-                        Point rel = Mouse.GetPosition(wnd.MainCanvas);
+                        GetCursorPos(out POINT cp);
 
                         string? toSend = null;
 
-                        double cw = wnd.MainCanvas.Width;
-                        double ch = wnd.MainCanvas.Height;
-                        double dx = rel.X - cw / 2;
-                        double dy = rel.Y - ch / 2;
+                        double dx = cp.X - wnd._centerX;
+                        double dy = cp.Y - wnd._centerY;
 
                         if (dx != 0 || dy != 0)
                         {
@@ -189,6 +189,9 @@ namespace PieOverlay
         private void DrawEightRects()
         {
             GetCursorPos(out POINT p);
+            _centerX = p.X;
+            _centerY = p.Y;
+
             var pt = new Point(p.X, p.Y);
             if (PresentationSource.FromVisual(this) is { CompositionTarget: var ct })
                 pt = ct.TransformFromDevice.Transform(pt);
