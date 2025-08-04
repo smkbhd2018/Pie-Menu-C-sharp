@@ -26,6 +26,14 @@ namespace PieOverlay
         // Radius of the pie menu; default 100 but configurable in settings
         public double Radius { get; set; } = 100;
 
+        // Dead zone radius around center where no item is selected
+        public double DeadzoneRadius { get; set; } = 20;
+
+        // Appearance of item labels
+        public System.Windows.Media.Color ItemForeground { get; set; } = System.Windows.Media.Colors.DarkBlue;
+        public double ItemFontSize { get; set; } = 14;
+        public string ItemFontFamily { get; set; } = "Segoe UI";
+
         // Selection behavior: hover (default) or click
         public SelectionMode Behavior { get; set; } = SelectionMode.Hover;
 
@@ -132,7 +140,8 @@ namespace PieOverlay
                         double dy = cp.Y - wnd._centerY;
 
                         int idx = -1;
-                        if (dx != 0 || dy != 0)
+                        double distance = Math.Sqrt(dx * dx + dy * dy);
+                        if (distance >= wnd.DeadzoneRadius)
                         {
                             double angle = Math.Atan2(dy, dx);
                             double degrees = angle * 180 / Math.PI;
@@ -253,7 +262,7 @@ namespace PieOverlay
                 BlurRadius  = 8,
                 ShadowDepth = 2,
                 Opacity     = 0.4,
-                Color       = Colors.Black
+                Color       = System.Windows.Media.Colors.Black
             };
 
             for (int i = 0; i < count; i++)
@@ -272,10 +281,11 @@ namespace PieOverlay
 
                 var label = new TextBlock {
                     Text                = ItemNames[i],
-                    FontSize            = 14,
+                    FontSize            = ItemFontSize,
+                    FontFamily          = new FontFamily(ItemFontFamily),
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment   = VerticalAlignment.Center,
-                    Foreground          = Brushes.DarkBlue
+                    Foreground          = new SolidColorBrush(ItemForeground)
                 };
 
                 border.Child = label;

@@ -1,10 +1,14 @@
+using System.Linq;
 using System.Windows;
+using System.Windows.Media;
+using Forms = System.Windows.Forms;
 
 namespace PieOverlay
 {
     public partial class SettingsWindow : Window
     {
         private readonly MainWindow _parent;
+        private System.Windows.Media.Color _selectedColor;
 
         public SettingsWindow(MainWindow parent)
         {
@@ -30,9 +34,18 @@ namespace PieOverlay
             Hot6.Text = _parent.ItemHotkeys[6];
             Hot7.Text = _parent.ItemHotkeys[7];
 
-            // load radius and behavior
-            SldRadius.Value = _parent.Radius;
+            // load radius, dead zone and behavior
+            SldRadius.Value    = _parent.Radius;
+            SldDeadzone.Value   = _parent.DeadzoneRadius;
             CmbMode.SelectedIndex = (int)_parent.Behavior;
+            _selectedColor       = _parent.ItemForeground;
+            BtnColor.Background  = new SolidColorBrush(_selectedColor);
+            SldFontSize.Value    = _parent.ItemFontSize;
+            CmbFontFamily.ItemsSource = Fonts.SystemFontFamilies
+                .Select(f => f.Source)
+                .OrderBy(s => s)
+                .ToList();
+            CmbFontFamily.SelectedItem = _parent.ItemFontFamily;
         }
 
         private void OnSave(object sender, RoutedEventArgs e)
@@ -56,15 +69,27 @@ namespace PieOverlay
             _parent.ItemHotkeys[6] = Hot6.Text.Trim();
             _parent.ItemHotkeys[7] = Hot7.Text.Trim();
 
-            _parent.Radius = SldRadius.Value;
-            _parent.Behavior = (SelectionMode)CmbMode.SelectedIndex;
+            _parent.Radius        = SldRadius.Value;
+            _parent.DeadzoneRadius = SldDeadzone.Value;
+            _parent.Behavior      = (SelectionMode)CmbMode.SelectedIndex;
+            _parent.ItemForeground = _selectedColor;
+            _parent.ItemFontSize   = SldFontSize.Value;
+            _parent.ItemFontFamily = CmbFontFamily.SelectedItem as string ?? _parent.ItemFontFamily;
 
             Close();
         }
 
-        private void OnCancel(object sender, RoutedEventArgs e)
+        private void OnCancel(object sender, RoutedEventArgs e) => Close();
+
+        private void OnChooseColor(object sender, RoutedEventArgs e)
         {
-            Close();
+            using var dlg = new Forms.ColorDialog();
+            dlg.Color = System.Drawing.Color.FromArgb(_selectedColor.A, _selectedColor.R, _selectedColor.G, _selectedColor.B);
+            if (dlg.ShowDialog() == Forms.DialogResult.OK)
+            {
+                _selectedColor = System.Windows.Media.Color.FromArgb(dlg.Color.A, dlg.Color.R, dlg.Color.G, dlg.Color.B);
+                BtnColor.Background = new SolidColorBrush(_selectedColor);
+            }
         }
     }
 }
