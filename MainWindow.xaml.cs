@@ -99,25 +99,25 @@ namespace PieOverlay
                     // "1" up selects hovered slice & hides
                     else if (vkCode == VK_1 && up && wnd._visible)
                     {
-                        // hit‐test; VisualHit might be the TextBlock inside the Border,
-                        // so walk up the tree until we find the enclosing Border element
                         Point rel = Mouse.GetPosition(wnd.MainCanvas);
-                        var hit   = VisualTreeHelper.HitTest(wnd.MainCanvas, rel);
-
-                        Border? border = null;
-                        DependencyObject? cur = hit?.VisualHit;
-                        while (cur != null && border == null)
-                        {
-                            if (cur is Border b)
-                                border = b;
-                            else
-                                cur = VisualTreeHelper.GetParent(cur);
-                        }
 
                         string? toSend = null;
-                        if (border != null)
+
+                        double cw = wnd.MainCanvas.Width;
+                        double ch = wnd.MainCanvas.Height;
+                        double dx = rel.X - cw / 2;
+                        double dy = rel.Y - ch / 2;
+                        double dist = Math.Sqrt(dx * dx + dy * dy);
+
+                        if (dist >= wnd.Radius / 2)
                         {
-                            int idx = wnd.MainCanvas.Children.IndexOf(border);
+                            double angle = Math.Atan2(dy, dx);
+                            double degrees = angle * 180 / Math.PI;
+                            if (degrees < 0) degrees += 360;
+
+                            int count = wnd.ItemHotkeys.Length;
+                            double seg = 360.0 / count;
+                            int idx = (int)Math.Floor((degrees + seg / 2) / seg) % count;
                             if (idx >= 0 && idx < wnd.ItemHotkeys.Length)
                                 toSend = wnd.ItemHotkeys[idx];
                         }
