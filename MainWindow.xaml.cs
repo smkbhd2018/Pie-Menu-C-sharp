@@ -63,8 +63,11 @@ namespace PieOverlay
         // Open the settings dialog
         public void OpenSettings()
         {
-            var dlg = new SettingsWindow(this);
-            dlg.Owner = this;
+            var dlg = new SettingsWindow(this)
+            {
+                Owner = null,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen
+            };
             dlg.ShowDialog();
         }
 
