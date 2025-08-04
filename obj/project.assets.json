@@ -46,11 +46,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\IMP-DriveC\\SOFTWARE\\0-NEEDED To Be\\MyApps\\Pie menu Mine\\Pie Menu C sharp\\PieOverlay\\PieOverlay.csproj",
+      "projectUniqueName": "C:\\IMP-DriveC\\SOFTWARE\\0-NEEDED To Be\\MyApps\\Pie menu Mine\\Pie Menu C sharp\\Pie Menu From Git\\Pie-Menu-C-sharp\\PieOverlay.csproj",
       "projectName": "PieOverlay",
-      "projectPath": "C:\\IMP-DriveC\\SOFTWARE\\0-NEEDED To Be\\MyApps\\Pie menu Mine\\Pie Menu C sharp\\PieOverlay\\PieOverlay.csproj",
+      "projectPath": "C:\\IMP-DriveC\\SOFTWARE\\0-NEEDED To Be\\MyApps\\Pie menu Mine\\Pie Menu C sharp\\Pie Menu From Git\\Pie-Menu-C-sharp\\PieOverlay.csproj",
       "packagesPath": "C:\\Users\\sajjad laptop\\.nuget\\packages\\",
-      "outputPath": "C:\\IMP-DriveC\\SOFTWARE\\0-NEEDED To Be\\MyApps\\Pie menu Mine\\Pie Menu C sharp\\PieOverlay\\obj\\",
+      "outputPath": "C:\\IMP-DriveC\\SOFTWARE\\0-NEEDED To Be\\MyApps\\Pie menu Mine\\Pie Menu C sharp\\Pie Menu From Git\\Pie-Menu-C-sharp\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7u5C3TZ0yFc=",
+  "dgSpecHash": "GtpUMZntT50=",
   "success": true,
-  "projectFilePath": "C:\\IMP-DriveC\\SOFTWARE\\0-NEEDED To Be\\MyApps\\Pie menu Mine\\Pie Menu C sharp\\PieOverlay\\PieOverlay.csproj",
+  "projectFilePath": "C:\\IMP-DriveC\\SOFTWARE\\0-NEEDED To Be\\MyApps\\Pie menu Mine\\Pie Menu C sharp\\Pie Menu From Git\\Pie-Menu-C-sharp\\PieOverlay.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\sajjad laptop\\.nuget\\packages\\mousekeyhook\\5.7.1\\mousekeyhook.5.7.1.nupkg.sha512"
   ],

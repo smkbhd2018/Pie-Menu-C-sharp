@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PieOverlay")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+09d7e31b0e22f1c05f0e4f6f0733af9db10acec8")]
 [assembly: System.Reflection.AssemblyProductAttribute("PieOverlay")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PieOverlay")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
