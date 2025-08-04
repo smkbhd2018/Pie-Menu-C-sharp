@@ -78,8 +78,11 @@ namespace PieOverlay
             _parent.ItemFontFamily = new FontFamily(TxtFont.Text);
             try
             {
-                var brush = (Brush)new BrushConverter().ConvertFromString(TxtColor.Text);
-                _parent.ItemColor = brush;
+                var brushObj = new BrushConverter().ConvertFromString(TxtColor.Text);
+                if (brushObj is Brush brush)
+                {
+                    _parent.ItemColor = brush;
+                }
             }
             catch
             {
